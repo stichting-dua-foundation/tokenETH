@@ -69,7 +69,7 @@ The contract defines the following roles:
 
 `BURNER_ROLE`: The role that allows burning tokens.
 
-`ADMIN_ROLE`: The role that allows pausing the token, adding new minters and admins, and self-destructing functions.
+`ADMIN_ROLE`: The role that allows pausing the token, adding new minters, new burners and admins, and self-destructing functions.
 
 `BLACKLISTED_ROLE`: The role that blacklists addresses from transferring tokens.
 

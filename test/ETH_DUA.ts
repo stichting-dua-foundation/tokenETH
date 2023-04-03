@@ -6,6 +6,7 @@ import { DUAToken } from "../typechain";
 describe("DUAToken", function () {
   let token: DUAToken;
   let user: any;
+  let second_user: any;
   let admin: any;
   let minter: any;
   let burner: any;
@@ -22,7 +23,7 @@ describe("DUAToken", function () {
     const DUATokenFactory = await ethers.getContractFactory(
       "contracts/ETH_DUAToken.sol:DUAToken"
     );
-    [admin, minter, burner, user, blacklisted] = await ethers.getSigners();
+    [admin, minter, burner, user, blacklisted, second_user] = await ethers.getSigners();
     
 
     //init roles 
@@ -96,6 +97,34 @@ describe("DUAToken", function () {
       token.connect(minter).mint(minter.address, amountToMint)
     ).to.be.revertedWith(error);
   });
+
+  it("admin can add and remove burner, minter roles", async () => {
+    // Add burner
+    await token.connect(admin).grantRole(BURNER_ROLE, burner.address);
+    expect(await token.hasRole(BURNER_ROLE, burner.address)).to.equal(true);
+
+    // Remove burner
+    await token.connect(admin).revokeRole(BURNER_ROLE, burner.address);
+    expect(await token.hasRole(BURNER_ROLE, burner.address)).to.equal(false);
+
+    // Add minter
+    await token.connect(admin).grantRole(MINTER_ROLE, minter.address);
+    expect(await token.hasRole(MINTER_ROLE, minter.address)).to.equal(true);
+
+    // Remove minter
+    await token.connect(admin).revokeRole(MINTER_ROLE, minter.address);
+    expect(await token.hasRole(MINTER_ROLE, minter.address)).to.equal(false);
+
+    // add admin
+    await token.connect(admin).grantRole(ADMIN_ROLE, second_user.address);
+    expect(await token.hasRole(ADMIN_ROLE, second_user.address)).to.equal(true);
+
+    // remove admin
+    await token.connect(admin).revokeRole(ADMIN_ROLE, second_user.address);
+    expect(await token.hasRole(ADMIN_ROLE, second_user.address)).to.equal(false);
+
+  });
+
 
   it("should allow the admin to pause and unpause the contract", async function () {
     // Pause the contract
@@ -270,5 +299,18 @@ describe("DUAToken", function () {
     await token.connect(minter).transfer(blacklisted.address, amountToTransfer);
     expect(await token.balanceOf(blacklisted.address)).to.equal(amountToTransfer);
   });
+
+  it("should be able to remove itself from admin role", async () => {
+    // remove itself as admin
+    await token.connect(admin).revokeRole(ADMIN_ROLE, admin.address);
+    expect(await token.hasRole(ADMIN_ROLE, admin.address)).to.equal(false);
+    const error = `AccessControl: account ${admin.address} is missing role ${ADMIN_ROLE}`;
+    // try to add a new admin
+     expect(
+      token.connect(admin).addAdmin(user.address)
+    ).to.be.revertedWith(error);
+
+  });
+
 
 });
