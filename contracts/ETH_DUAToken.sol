@@ -44,6 +44,7 @@ contract DUAToken is ERC20, ERC20Burnable, AccessControl, ERC20Pausable {
         _setupRole(ADMIN_ROLE, adminRole);
         _setupRole(MINTER_ROLE, minterRole);
         _setupRole(BURNER_ROLE, burnerRole);
+        _setupRole(DEFAULT_ADMIN_ROLE, adminRole);
 
         _destructPause = false;
         _destructMint = false;
