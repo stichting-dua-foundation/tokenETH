@@ -73,6 +73,35 @@ The contract defines the following roles:
 
 `BLACKLISTED_ROLE`: The role that blacklists addresses from transferring tokens.
 
+## Events
+
+### SelfDestructed Event
+
+The SelfDestructed event is emitted in a Solidity contract and is used to indicate the self-destruction of specific functionalities within the contract. The event provides information about the type of functionality that has been self-destructed through an integer parameter.
+
+### Functionality Codes
+
+The `SelfDestructed` event uses an integer parameter to represent different functionality codes, which are as follows:
+
+- 0: All functionalities
+- 1: Pause functionality
+- 2: Minting functionality
+- 3: Burning functionality
+- 4: Add Minter addresses functionality
+- 5: Adding new Admins functionality
+
+### Usage
+
+The `SelfDestructed` event is triggered by calling the corresponding self-destruct functions in the contract, such as `selfDestructAllRoles()`, `selfDestructPause()`, `selfDestructMint()`, `selfDestructBurn()`, `selfDestructAddMinter()`, and `selfDestructAddAdmin()`. These functions can only be accessed by an admin role, as indicated by the `onlyRole(ADMIN_ROLE)` modifier.
+
+When one of these functions is called and the self-destruction of a specific functionality is successful, the corresponding functionality code is passed as an argument to the SelfDestructed event. This allows external parties to listen for the event and take appropriate actions based on the functionality that has been self-destructed.
+
+### Purpose
+
+The purpose of the SelfDestructed event is to provide transparency and information about the self-destruction of specific functionalities within the contract. It allows external parties to be notified when a functionality has been self-destructed and take necessary actions accordingly. This event can be used for auditing, monitoring, and tracking the changes in the contract's functionalities over time.
+
+Note: It is important to exercise caution when using self-destruct functions, as they permanently remove functionalities from the contract and cannot be undone. Proper security measures and permissions should be implemented to ensure that only authorized parties can trigger the self-destruction of functionalities within the contract.
+
 ## Dependencies
 
 The contract imports the following OpenZeppelin contracts:
