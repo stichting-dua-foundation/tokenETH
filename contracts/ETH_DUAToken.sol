@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
@@ -31,7 +31,7 @@ contract DUAToken is ERC20, ERC20Burnable, AccessControl, ERC20Pausable {
     bool private _destructAddAdmin; //destruct the addAdmin (can't add new admins) function for the token. WARNING: this is irreversible
 
     // The cap or max total supply of the token.
-    uint256 private _cap;
+    uint256 private immutable _cap;
 
     /**
      * @dev initiates the token with its name, symbol, admin, minter and burner role addresses and max total supply of the token. It also initiates _destructPause, _destructMint, _destructBurn, _destructAddMinter and _destructAddAdmin to false.
@@ -46,13 +46,13 @@ contract DUAToken is ERC20, ERC20Burnable, AccessControl, ERC20Pausable {
         _setupRole(BURNER_ROLE, burnerRole);
         _setupRole(DEFAULT_ADMIN_ROLE, adminRole);
 
-        _destructPause = false;
-        _destructMint = false;
-        _destructBurn = false;
-        _destructAddMinter = false;
-        _destructAddAdmin = false;
-
     }
+
+    /**
+    *  @dev emits an event for self destruction of particular functionality.
+    */
+
+    event SelfDestructed(string functionality);
 
     /**
     *  @dev Checks if the minting functionality has been self-destructed. If not, it calls the normal _mint function, only accessible by the minter role.
@@ -94,7 +94,7 @@ contract DUAToken is ERC20, ERC20Burnable, AccessControl, ERC20Pausable {
     */
 
     function addToBlacklist(address account) public onlyRole(ADMIN_ROLE) {
-        grantRole(BLACKLISTED_ROLE, account);
+        _grantRole(BLACKLISTED_ROLE, account);
     }
 
     /**
@@ -102,7 +102,7 @@ contract DUAToken is ERC20, ERC20Burnable, AccessControl, ERC20Pausable {
     */
 
     function removeFromBlacklist(address account) public onlyRole(ADMIN_ROLE) {
-        revokeRole(BLACKLISTED_ROLE, account);
+        _revokeRole(BLACKLISTED_ROLE, account);
     }
 
 
@@ -112,7 +112,7 @@ contract DUAToken is ERC20, ERC20Burnable, AccessControl, ERC20Pausable {
 
     function addMinter(address account) public onlyRole(ADMIN_ROLE) {
         require(!_destructAddMinter, "Minter addition functionality has been self-destructed");
-        grantRole(MINTER_ROLE, account);
+        _grantRole(MINTER_ROLE, account);
     }
 
     /**
@@ -120,7 +120,7 @@ contract DUAToken is ERC20, ERC20Burnable, AccessControl, ERC20Pausable {
     */
 
     function addBurner(address account) public onlyRole(ADMIN_ROLE) {
-        grantRole(BURNER_ROLE, account);
+        _grantRole(BURNER_ROLE, account);
     }
 
     /**
@@ -129,7 +129,7 @@ contract DUAToken is ERC20, ERC20Burnable, AccessControl, ERC20Pausable {
 
     function addAdmin(address account) public onlyRole(ADMIN_ROLE) {
         require(!_destructAddAdmin, "Admin addition functionality has been self-destructed");
-        grantRole(ADMIN_ROLE, account);
+        _grantRole(ADMIN_ROLE, account);
     }
 
 
@@ -145,6 +145,7 @@ contract DUAToken is ERC20, ERC20Burnable, AccessControl, ERC20Pausable {
      * @dev Checks if (to and from) addresses are blacklisted and calls normal _beforeTokenTransfer.
      */
     function _beforeTokenTransfer(address from, address to, uint256 amount) whenNotPaused internal virtual override(ERC20, ERC20Pausable) {
+        require(!hasRole(BLACKLISTED_ROLE, msg.sender), "Token transfer refused. msg.sender is blacklisted.");
         require(!hasRole(BLACKLISTED_ROLE, from), "Token transfer refused. Sender is blacklisted.");
         require(!hasRole(BLACKLISTED_ROLE, to), "Token transfer refused. Receiver is blacklisted.");
     }
@@ -191,6 +192,7 @@ contract DUAToken is ERC20, ERC20Burnable, AccessControl, ERC20Pausable {
         _destructBurn = true;
         _destructAddMinter = true;
         _destructAddAdmin = true;
+        emit SelfDestructed("All Roles");
     }
 
     /**
@@ -199,6 +201,7 @@ contract DUAToken is ERC20, ERC20Burnable, AccessControl, ERC20Pausable {
 
     function selfDestructPause() public onlyRole(ADMIN_ROLE) {
         _destructPause = true;
+        emit SelfDestructed("Pause");
     }
 
     /**
@@ -207,6 +210,7 @@ contract DUAToken is ERC20, ERC20Burnable, AccessControl, ERC20Pausable {
 
     function selfDestructMint() public onlyRole(ADMIN_ROLE) {
         _destructMint = true;
+        emit SelfDestructed("Mint");
     }
 
     /**
@@ -214,6 +218,7 @@ contract DUAToken is ERC20, ERC20Burnable, AccessControl, ERC20Pausable {
     */
     function selfDestructBurn() public onlyRole(ADMIN_ROLE) {
         _destructBurn = true;
+        emit SelfDestructed("Burn");
     }
 
     /**
@@ -221,6 +226,7 @@ contract DUAToken is ERC20, ERC20Burnable, AccessControl, ERC20Pausable {
     */
     function selfDestructAddMinter() public onlyRole(ADMIN_ROLE) {
         _destructAddMinter = true;
+        emit SelfDestructed("Add Minter");
     }
 
     /**
@@ -228,6 +234,7 @@ contract DUAToken is ERC20, ERC20Burnable, AccessControl, ERC20Pausable {
     */
     function selfDestructAddAdmin() public onlyRole(ADMIN_ROLE) {
         _destructAddAdmin = true;
+        emit SelfDestructed("Add Admin");
     }
 
 }
